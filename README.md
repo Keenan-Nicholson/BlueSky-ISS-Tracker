@@ -60,7 +60,7 @@ docker compose up -d --build
 | `docker compose logs -f` | Tail live logs |
 | `docker compose logs --tail=100` | View last 100 log lines |
 
-The container uses a health check (`pgrep` on the bot process) that reports healthy/unhealthy status to monitoring tools like Beszel.
+The container mounts `./data:/app/data`, so runtime files (`bot.log`, `locations.json`, `pending-replies.json`) persist on the host. A health check (`pgrep` on the bot process) reports status to monitoring tools like Beszel.
 
 ## Architecture
 

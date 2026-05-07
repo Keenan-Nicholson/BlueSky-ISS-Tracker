@@ -5,7 +5,8 @@ const cron = require("node-cron");
 const minimist = require("minimist");
 const dotenv = require("dotenv");
 
-const LOG_FILE = "bot.log";
+const DATA_DIR = "data";
+const LOG_FILE = `${DATA_DIR}/bot.log`;
 
 const log = async (message, type = "INFO") => {
   const line = `[${new Date().toISOString()}] [${type}] ${message}`;
@@ -19,7 +20,7 @@ const DRY_RUN = argv["dry-run"] ?? false;
 
 const CRON_SCHEDULE = "0 12 * * *";
 const REPLY_CRON = "*/10 * * * *";
-const PENDING_REPLIES_FILE = "pending-replies.json";
+const PENDING_REPLIES_FILE = `${DATA_DIR}/pending-replies.json`;
 const NASA_S3_URL = "https://iss-sts.hqmce.nasa.gov/iss-sts-cities-html/";
 const HASHTAGS =
   "#StJohns #CornerBrook #GFW #GooseBay #BaieVerte #HantsHarbour #TroutRiver #HVGB #Labrador #Newfoundland #nlwx #NFLD #explorenl #NASA #ISS #SpaceStation #Astronomy, #nightsky #lookup";
@@ -96,7 +97,7 @@ const getLocations = async () =>
   );
 
 const writeLocations = async (locations) =>
-  fs.writeFile("locations.json", JSON.stringify(locations, null, 2));
+  fs.writeFile(`${DATA_DIR}/locations.json`, JSON.stringify(locations, null, 2));
 
 const formatDate = (date) => {
   const formatted = date.toDateString().slice(4, 10);

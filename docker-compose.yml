@@ -4,6 +4,8 @@ services:
     container_name: iss-bluesky-bot
     restart: unless-stopped
     env_file: .env
+    volumes:
+      - ./data:/app/data
     healthcheck:
       test: ["CMD-SHELL", "pgrep -f ISSBot.js || exit 1"]
       interval: 30s
