@@ -22,7 +22,7 @@ const CRON_SCHEDULE = "0 12 * * *";
 const REPLY_CRON = "*/10 * * * *";
 const PENDING_REPLIES_FILE = `${DATA_DIR}/pending-replies.json`;
 const NASA_S3_URL = "https://iss-sts.hqmce.nasa.gov/iss-sts-cities-html/";
-const HASHTAGS = "#Newfoundland #Labrador #NASA #ISS";
+const HASHTAGS = "#Newfoundland #Labrador #ISS";
 
 let agent;
 
@@ -161,15 +161,16 @@ const buildReplyPost = (locationName, sighting, type) => {
 
 const buildVisiblePost = (locationName, date, sightings) => {
   const count = sightings.length;
-  const header = count > 1
-    ? `${locationName} — ${date} (${count})`
-    : `${locationName} — ${date}`;
+  const header =
+    count > 1
+      ? `${locationName} — ${date} (${count})`
+      : `${locationName} — ${date}`;
 
   const stripAbove = (s) => s.replace(" above ", " ");
 
   const lines = sightings.map(
     (s, i) =>
-      `${count > 1 ? `${i + 1}. ` : ""}${s.time} ✦ ${s.duration} ✦ ${s.degree} ✦ ↑${stripAbove(s.appears)} ✦ ↓${stripAbove(s.disappears)}`,
+      `${count > 1 ? `${i + 1}. ` : ""}${s.time} ✦ ${s.duration} ✦ ↑${stripAbove(s.appears)} ✦ ↓${stripAbove(s.disappears)}`,
   );
 
   return `${header}\n${lines.join("\n")}\n\n${HASHTAGS}`;
