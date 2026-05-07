@@ -4,7 +4,8 @@ A bot that fetches International Space Station sighting data from NASA and posts
 
 ## Features
 
-- **Daily sighting alerts** — Posts at noon for visible passes the following day
+- **Daily sighting alerts** — Posts at noon (or on start with `--post`) for visible passes the following day
+- **Multiple passes per post** — All sightings for a location on the same day are consolidated into one post
 - **Countdown replies** — Replies to the alert 1 hour before, 30 minutes before, and at the time of each sighting
 - **7 Newfoundland locations** — St. John's, Corner Brook, Grand Falls, Goose Bay, Baie Verte, Hants Harbour, Trout River
 
@@ -32,13 +33,14 @@ Use an [App Password](https://bsky.app/settings/app-passwords), not your main pa
 
 ## Usage
 
-| Command                   | Description                                                  |
-| ------------------------- | ------------------------------------------------------------ |
-| `npm start`               | Start persistent bot (immediate run, then daily at 12:00 PM) |
-| `npm run run-job`         | Run one fetch-and-post cycle immediately                     |
-| `npm run dry-run`         | Run one cycle without posting (logs what would be sent)      |
-| `npm run test-reply`      | Test the reply system with a fake sighting 55 min out        |
-| `npm run print-locations` | Fetch and print fresh sighting data                          |
+| Command                          | Description                                                  |
+| -------------------------------- | ------------------------------------------------------------ |
+| `npm start`                      | Start persistent bot (cron only, no immediate post)          |
+| `npm run start-bot -- --post`    | Start persistent bot with immediate fetch-and-post cycle     |
+| `npm run run-job`                | Run one fetch-and-post cycle immediately                     |
+| `npm run dry-run`                | Run one cycle without posting (logs what would be sent)      |
+| `npm run test-reply`             | Test the reply system with a fake sighting 55 min out        |
+| `npm run print-locations`        | Fetch and print fresh sighting data                          |
 
 ## Docker
 
@@ -55,25 +57,27 @@ docker compose up -d --build
 
 | Command | Description |
 |---|---|
-| `docker compose up -d --build` | Build and start in background |
+| `docker compose up -d --build` | Build and start in background (runs `start-bot --post`) |
 | `docker compose down` | Stop the container |
 | `docker compose logs -f` | Tail live logs |
 | `docker compose logs --tail=100` | View last 100 log lines |
+
+The container runs `start-bot --post`, so it fetches and posts on startup then continues on the cron schedule. Without the `--post` flag, the bot only runs on its cron schedule (noon daily) without an immediate post.
 
 The container mounts `./data:/app/data`, so runtime files (`bot.log`, `locations.json`, `pending-replies.json`) persist on the host. A health check (`pgrep` on the bot process) reports status to monitoring tools like Beszel.
 
 ## Architecture
 
 1. NASA data is fetched from `iss-sts.hqmce.nasa.gov/iss-sts-cities-html/` — pre-rendered HTML tables served from S3
-2. The daily cron (12:00 PM) parses the tables, finds sightings for the next day, and posts alerts
+2. The daily cron (12:00 PM) parses the tables, finds all sightings for the next day, and posts one consolidated alert per location
 3. Every 10 minutes, a second cron checks if any upcoming sighting is 1 hour away, 30 minutes away, or happening now, and posts a reply to the original alert with the appropriate countdown message
 4. All posts use `RichText` from `@atproto/api` to ensure hashtags render correctly on Bluesky
 
 ## Data files
 
-| File                   | Purpose                         | Git     |
-| ---------------------- | ------------------------------- | ------- |
-| `locations.json`       | Cached sighting data from NASA  | Ignored |
-| `pending-replies.json` | Queue of scheduled reply alerts | Ignored |
-| `bot.log`              | Timestamped activity log        | Ignored |
-| `.env`                 | Bluesky credentials             | Ignored |
+| File                           | Purpose                         | Git     |
+| ------------------------------ | ------------------------------- | ------- |
+| `data/locations.json`          | Cached sighting data from NASA  | Ignored |
+| `data/pending-replies.json`    | Queue of scheduled reply alerts | Ignored |
+| `data/bot.log`                 | Timestamped activity log        | Ignored |
+| `.env`                         | Bluesky credentials             | Ignored |
