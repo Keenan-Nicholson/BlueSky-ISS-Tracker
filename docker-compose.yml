@@ -1,0 +1,12 @@
+services:
+  bot:
+    build: .
+    container_name: iss-bluesky-bot
+    restart: unless-stopped
+    env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f ISSBot.js || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

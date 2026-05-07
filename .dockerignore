@@ -1,0 +1,9 @@
+node_modules
+.git
+.gitignore
+*.md
+.env
+data
+bot.log
+locations.json
+pending-replies.json

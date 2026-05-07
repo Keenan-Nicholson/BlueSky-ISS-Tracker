@@ -40,6 +40,14 @@ Use an [App Password](https://bsky.app/settings/app-passwords), not your main pa
 | `npm run test-reply`      | Test the reply system with a fake sighting 55 min out        |
 | `npm run print-locations` | Fetch and print fresh sighting data                          |
 
+## Docker
+
+```bash
+docker compose up -d --build
+```
+
+Uses multi-stage `node:18-alpine` build. Loads `.env` automatically. Runtime data (`locations.json`, `pending-replies.json`, `bot.log`) lives in the container's writable layer; use `docker logs iss-bluesky-bot` to view logs.
+
 ## Architecture
 
 1. NASA data is fetched from `iss-sts.hqmce.nasa.gov/iss-sts-cities-html/` — pre-rendered HTML tables served from S3
