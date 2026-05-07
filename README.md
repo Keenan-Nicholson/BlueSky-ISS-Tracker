@@ -46,7 +46,21 @@ Use an [App Password](https://bsky.app/settings/app-passwords), not your main pa
 docker compose up -d --build
 ```
 
-Uses multi-stage `node:18-alpine` build. Loads `.env` automatically. Runtime data (`locations.json`, `pending-replies.json`, `bot.log`) lives in the container's writable layer; use `docker logs iss-bluesky-bot` to view logs.
+### Prerequisites
+
+- [Docker](https://docs.docker.com/engine/install/) & [Docker Compose](https://docs.docker.com/compose/install/) v2+
+- `.env` file in project root (see [Setup](#setup))
+
+### Commands
+
+| Command | Description |
+|---|---|
+| `docker compose up -d --build` | Build and start in background |
+| `docker compose down` | Stop the container |
+| `docker compose logs -f` | Tail live logs |
+| `docker compose logs --tail=100` | View last 100 log lines |
+
+The container uses a health check (`pgrep` on the bot process) that reports healthy/unhealthy status to monitoring tools like Beszel.
 
 ## Architecture
 
