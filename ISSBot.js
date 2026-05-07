@@ -201,7 +201,12 @@ const postToBluesky = async (text, replyTo = null) => {
       ? { uri: replyTo.uri, cid: replyTo.cid }
       : { uri: "dry-run-uri", cid: "dry-run-cid" };
   }
-  return await agent.post(post);
+  try {
+    return await agent.post(post);
+  } catch (error) {
+    log(`Failed to post: ${error.message}`, "ERROR");
+    return null;
+  }
 };
 
 const extractDate = (data) => {
@@ -352,24 +357,25 @@ const job = async () => {
   log(`Running job for ${tomorrow}`);
 
   const locations = await getLocations();
-
-  const results = await Promise.all(
-    Object.entries(locations).map(([name, data]) =>
-      postUpdate(data, name, tomorrow),
-    ),
-  );
-
   const existing = await readPendingReplies();
-  const newReplies = results.filter(
-    (r) =>
-      r &&
-      !existing.some(
-        (e) =>
-          e.locationName === r.locationName &&
-          e.tomorrowDate === r.tomorrowDate,
-      ),
-  );
 
+  const results = [];
+  for (const [name, data] of Object.entries(locations)) {
+    if (
+      existing.some(
+        (e) => e.locationName === name && e.tomorrowDate === tomorrow,
+      )
+    ) {
+      log(`${name}: already posted for ${tomorrow}, skipping`);
+      results.push(null);
+      continue;
+    }
+    const result = await postUpdate(data, name, tomorrow);
+    results.push(result);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+
+  const newReplies = results.filter((r) => r);
   if (newReplies.length > 0) {
     await writePendingReplies([...existing, ...newReplies]);
     log(`Saved ${newReplies.length} pending reply(s)`);
