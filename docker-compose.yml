@@ -12,19 +12,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
-
-  bot-post:
-    build: .
-    container_name: iss-bluesky-bot-post
-    restart: unless-stopped
-    env_file: .env
-    volumes:
-      - ./data:/app/data
-    profiles: ["post"]
-    command: ["node", "ISSBot.js", "start-bot", "--post"]
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep -f ISSBot.js || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s

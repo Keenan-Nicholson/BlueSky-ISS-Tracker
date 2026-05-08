@@ -17,6 +17,7 @@ const log = async (message, type = "INFO") => {
 dotenv.config();
 const argv = minimist(process.argv.slice(2));
 const DRY_RUN = argv["dry-run"] ?? false;
+if (process.env.POST_ON_START === "true") argv["post"] = true;
 
 const CRON_SCHEDULE = "0 12 * * *";
 const REPLY_CRON = "*/10 * * * *";
@@ -297,6 +298,14 @@ const ALERTS = [
   { key: "now", window: [-5, 5], label: "now" },
 ];
 
+const dayDiff = (dateA, dateB) => {
+  const year = new Date().getFullYear();
+  const a = new Date(`${dateA}, ${year}`);
+  const b = new Date(`${dateB}, ${year}`);
+  if (b.getMonth() === 0 && a.getMonth() === 11) b.setFullYear(year + 1);
+  return Math.round((b - a) / 86400000);
+};
+
 const checkPendingReplies = async () => {
   const pending = await readPendingReplies();
   if (pending.length === 0) {
@@ -311,13 +320,20 @@ const checkPendingReplies = async () => {
   const remaining = [];
 
   for (const reply of pending) {
-    if (nlDate !== reply.tomorrowDate) {
-      log(`  ${reply.locationName}: date mismatch (nl="${nlDate}" != stored="${reply.tomorrowDate}"), keeping`);
+    const diff = dayDiff(nlDate, reply.tomorrowDate);
+
+    if (diff < 0) {
+      log(`  ${reply.locationName}: expired (${reply.tomorrowDate}), dropping`);
+      continue;
+    }
+
+    if (diff > 1) {
+      log(`  ${reply.locationName}: too early (nl=${nlDate}, stored=${reply.tomorrowDate}), keeping`);
       remaining.push(reply);
       continue;
     }
 
-    log(`  ${reply.locationName}: date matches, checking ${reply.sightings.length} sighting(s)`);
+    log(`  ${reply.locationName}: processing (dayDiff=${diff}), ${reply.sightings.length} sighting(s)`);
     let hasActive = false;
 
     for (const sighting of reply.sightings) {
@@ -328,25 +344,24 @@ const checkPendingReplies = async () => {
         continue;
       }
 
+      const adjustedMinutes = sightingMinutes + diff * 1440;
       sighting.sentAlerts = sighting.sentAlerts || [];
 
       for (const alert of ALERTS) {
         if (sighting.sentAlerts.includes(alert.key)) continue;
         const [start, end] = alert.window;
-        const windowStart = sightingMinutes + start;
-        const windowEnd = sightingMinutes + end;
+        const windowStart = adjustedMinutes + start;
+        const windowEnd = adjustedMinutes + end;
         log(`    ${sighting.time}: checking ${alert.key} window [${windowStart}, ${windowEnd}], current=${nlMinutes}`);
         if (nlMinutes >= windowStart && nlMinutes <= windowEnd) {
           const text = buildReplyPost(reply.locationName, sighting, alert.key);
-          log(
-            `Reply to ${reply.locationName} (${sighting.time}, ${alert.label})`,
-          );
+          log(`Reply to ${reply.locationName} (${sighting.time}, ${alert.label})`);
           await postToBluesky(text, { uri: reply.uri, cid: reply.cid });
           sighting.sentAlerts.push(alert.key);
         }
       }
 
-      if (sighting.sentAlerts.length < 3 && nlMinutes <= sightingMinutes + 15) {
+      if (sighting.sentAlerts.length < 3 && nlMinutes <= adjustedMinutes + 15) {
         log(`    ${sighting.time}: ${3 - sighting.sentAlerts.length} alert(s) remaining, keeping active`);
         hasActive = true;
       } else {

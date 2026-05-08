@@ -49,23 +49,21 @@ Use an [App Password](https://bsky.app/settings/app-passwords), not your main pa
 - [Docker](https://docs.docker.com/engine/install/) & [Docker Compose](https://docs.docker.com/compose/install/) v2+
 - `.env` file in project root (see [Setup](#setup))
 
-### Profiles
+### Post on start
 
-Two Compose services are defined — one with and one without the immediate `--post` on start:
+Add `POST_ON_START=true` to your `.env` to fetch and post immediately on container start (e.g. first deploy or after downtime). Without it, the bot only runs on its noon daily cron.
 
-| Command | Service | Starts | Immediate post? |
-|---|---|---|---|
-| `docker compose up -d --build` | `bot` | Cron only | No |
-| `docker compose --profile post up -d --build` | `bot-post` | Cron + fetch & post | Yes |
-
-Use the `post` profile when you want the bot to immediately fetch and post today's sightings on startup (e.g. first deploy or after a long downtime). Without it, the bot only runs on its noon daily cron.
+```
+ISS_BOT_BLUESKY_HANDLE=your-handle.bsky.social
+ISS_BOT_BLUESKY_PASSWORD=your-app-password
+POST_ON_START=true
+```
 
 ### Common commands
 
 | Command | Description |
 |---|---|
-| `docker compose up -d --build` | Build and start as daemon (cron only) |
-| `docker compose --profile post up -d --build` | Build and start with immediate post |
+| `docker compose up -d --build` | Build and start as daemon |
 | `docker compose down` | Stop the container |
 | `docker compose logs -f` | Tail live logs |
 | `docker compose logs --tail=100` | View last 100 log lines |
