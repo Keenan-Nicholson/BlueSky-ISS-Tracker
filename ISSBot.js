@@ -299,7 +299,11 @@ const ALERTS = [
 
 const checkPendingReplies = async () => {
   const pending = await readPendingReplies();
-  if (pending.length === 0) return;
+  if (pending.length === 0) {
+    log("No pending replies to check");
+    return;
+  }
+  log(`Checking ${pending.length} pending reply(s)`);
 
   const nlMinutes = getNewfoundlandMinutes();
   const nlDate = getNewfoundlandDate();
