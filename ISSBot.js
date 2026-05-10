@@ -150,9 +150,9 @@ const stripAbove = (s) => s.replace(" above ", " ");
 
 const buildReplyPost = (locationName, sighting, type) => {
   const msgs = {
-    "1hr": `🛰️ The #ISS will be visible from ${locationName} in about 1 hour (${sighting.time})!\n\n↑${stripAbove(sighting.appears)} ✦ peak ${sighting.degree} ✦ ↓${stripAbove(sighting.disappears)}\n\n${HASHTAGS}`,
-    "30min": `🛰️ The #ISS will be visible from ${locationName} in about 30 minutes (${sighting.time})!\n\n↑${stripAbove(sighting.appears)} ✦ peak ${sighting.degree} ✦ ↓${stripAbove(sighting.disappears)}\n\n${HASHTAGS}`,
-    now: `🛰️ The #ISS is now visible from ${locationName}!\n\n↑${stripAbove(sighting.appears)} ✦ peak ${sighting.degree} ✦ ↓${stripAbove(sighting.disappears)}\n\n${HASHTAGS}`,
+    "1hr": `🛰️ The #ISS passes over ${locationName} in about 1 hour (${sighting.time})!\n\nIt will appear ${sighting.appears}, reaching a peak elevation of ${sighting.degree} before disappearing ${sighting.disappears}.\n\n${HASHTAGS}`,
+    "30min": `🛰️ The #ISS passes over ${locationName} in about 30 minutes (${sighting.time})!\n\nIt will appear ${sighting.appears}, reaching a peak elevation of ${sighting.degree} before disappearing ${sighting.disappears}.\n\n${HASHTAGS}`,
+    now: `🛰️ The #ISS is now passing over ${locationName}!\n\nIt is appearing ${sighting.appears}, reaching a peak elevation of ${sighting.degree} before disappearing ${sighting.disappears}.\n\n${HASHTAGS}`,
   };
   return msgs[type] || msgs.now;
 };
